@@ -1,0 +1,25 @@
+{
+    "version": "1.0.0",
+    "configurations": [
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Library(does nothing)",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}\\dnsserver.js",
+            "console": "integratedTerminal"   // <-- Add or modify this line
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Start TestServer",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}\\tests\\server.js",
+            "console": "integratedTerminal"   // <-- Add or modify this line
+        }
+    ]
+}

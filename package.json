@@ -1,0 +1,23 @@
+{
+  "name": "bubble_ezdns_server_library",
+  "version": "1.0.9",
+  "description": "An easy DNS Server for your application",
+  "main": "dnsserver.js",
+  "scripts": {
+    "start": "node test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TheBubble717/bubble_ezdns_server_library.git"
+  },
+  "author": "Bubblefish",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/TheBubble717/bubble_ezdns_server_library/issues"
+  },
+  "homepage": "https://github.com/TheBubble717/bubble_ezdns_server_library#readme",
+  "type": "module",
+  "dependencies": {
+    "dns-packet": "^5.5.0"
+  }
+}
