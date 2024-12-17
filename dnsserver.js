@@ -72,46 +72,57 @@ class responseclass {
         this.server = server
     }
 
-    send(answers,dnsflags) {
+    send(answers, dnsflags) {
         var that = this;
         return new Promise(async (resolve, reject) => {
             try {
 
-                // Prepare the EDNS0 OPT record
-                const optRecord = {
-                    type: 'OPT',
-                    name: '.', // Root domain
-                    udpPayloadSize: 4096,
-                    extendedRcode: 0,
-                    ednsVersion: 0,
-                    flags: 0,
-                    data: Buffer.alloc(0),
-                };
-
-                var response = dnsPacket.encode({
-                    type: 'response',
-                    id: that.request.id,
-                    flags: dnsflags,
-                    questions: that.request.questions,
-                    answers: answers,
-                    //additionals: [optRecord], // Uncomment if you need EDNS0 support
-                })
-
-                that.server.send(response, that.rinfo.port, that.rinfo.address, (err) => {
-                    if (err) {
-                        reject(`Error sending response to ${that.rinfo.address}:${that.rinfo.port}: ${err}`);
-                    } else {
-                        resolve(`Sent response to ${that.rinfo.address}:${that.rinfo.port}`);
+                // Process answers to split TXT records if necessary
+                const processedAnswers = answers.map(answer => {
+                    if (answer.type === 'TXT' && typeof answer.data === 'string') {
+                        answer.data = Array.from({ length: Math.ceil(answer.data.length / 255) }, 
+                            (_, i) => answer.data.slice(i * 255, (i + 1) * 255));
                     }
+                    return answer;
                 });
-            }
-            catch (err) {
-                reject(err)
-            }
 
-        });
+                    // Prepare the EDNS0 OPT record
+                    const optRecord = {
+                        type: 'OPT',
+                        name: '.', // Root domain
+                        udpPayloadSize: 4096,
+                        extendedRcode: 0,
+                        ednsVersion: 0,
+                        flags: 0,
+                        data: Buffer.alloc(0),
+                    };
+
+                    var response = dnsPacket.encode({
+                        type: 'response',
+                        id: that.request.id,
+                        flags: dnsflags,
+                        questions: that.request.questions,
+                        answers: processedAnswers,
+                        //additionals: [optRecord], // Uncomment if you need EDNS0 support
+                    })
+
+
+
+                    that.server.send(response, that.rinfo.port, that.rinfo.address, (err) => {
+                        if (err) {
+                            reject(`Error sending response to ${that.rinfo.address}:${that.rinfo.port}: ${err}`);
+                        } else {
+                            resolve(`Sent response to ${that.rinfo.address}:${that.rinfo.port}`);
+                        }
+                    });
+                }
+            catch (err) {
+                    reject(err)
+                }
+
+            });
     }
 }
 
 
-export { dnsserverclass,dnsPacket }
+export { dnsserverclass, dnsPacket }

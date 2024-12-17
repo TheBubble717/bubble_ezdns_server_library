@@ -1,6 +1,6 @@
 {
   "name": "bubble_ezdns_server_library",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "An easy DNS Server for your application",
   "main": "dnsserver.js",
   "scripts": {
