@@ -28,14 +28,6 @@ class dnsserverclass {
                 try {
                     var request = dnsPacket.decode(msg)
                     that.server.emit("request", request);
-                    try {
-                        for (let i = 0; i < request.questions.length; i++) {
-                            request.questions[i].name = request.questions[i].name.toLowerCase()
-                        }
-                    }
-                    catch (err) {
-
-                    }
                     that.handle(request, new responseclass(request, rinfo, that.server))
                 }
                 catch (err) { console.log("Packet not decodeable: " + err) }
@@ -103,7 +95,7 @@ class responseclass {
                         flags: dnsflags,
                         questions: that.request.questions,
                         answers: processedAnswers,
-                        //additionals: [optRecord], // Uncomment if you need EDNS0 support
+                        additionals: [optRecord],
                     })
 
 
