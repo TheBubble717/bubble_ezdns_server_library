@@ -10,7 +10,7 @@ class dnsclass {
     var that = this;
     return new Promise(async (resolve, reject) => {
       that.server = new dnsserverclass({
-        "type": "udp4",
+        "type": "tcp4",
         "port": port,
         "address": "0.0.0.0",
         "handle": (request, responseclass) =>
@@ -80,7 +80,8 @@ class dnsclass {
       }
     }
 
-    await responseclass.send(replyvariable, response.dnsflags).catch(function (err) { that.log.addlog(err, { color: "red", warn: "DNS-Error" }) });
+    await responseclass.send(replyvariable, response.dnsflags).catch(function (err) { console.log("Error sending Answer: "+err)});
+
     if ((question.type == "SOA") || (question.type == "CAA") || (question.type == "MX")) {
       var formattingofresponse = JSON.stringify(response.data)
     } else {
