@@ -62,9 +62,14 @@ class dnsserverclass {
 
                 socket.on('end', () => {
                 });
-            
+
                 socket.on('error', (err) => {
                 });
+
+                //Destroy connection after ${that.config.maxtime} seconds seconds!
+                setTimeout(() => {
+                    socket.destroy(); 
+                }, that.config.maxtime*1000);  
 
 
             });
@@ -84,7 +89,6 @@ class dnsserverclass {
         }
         else if (this.config.type == "tcp4") {
             this.server.listen(this.config.port, this.config.address, () => {
-
             });
         }
     }
@@ -93,7 +97,8 @@ class dnsserverclass {
 
 /*
 config:{
-    type:"udp4" or "upd6" or "tcp4" or "tcp6"
+    type:"udp4" or "upd6" or "tcp4" or "tcp6",
+    "maxtime": seconds //Max time of a connection, only works for tcp
     port:
     address: "0.0.0.0"
     handle: (request, responseclass) =>
@@ -149,13 +154,15 @@ class responseclass {
                     // Add the 2-byte length prefix to the response
                     const responseLength = Buffer.alloc(2);
                     responseLength.writeUInt16BE(response.length);
-                    that.server.write(Buffer.concat([responseLength, response]))
-                        .then(() => 
-                            console.log("orks"),
-                            resolve(`Sent response to ${that.rinfo.address}:${that.rinfo.port}`))
-                        .catch((err) => 
-                            console.log("not works"),
-                            reject(`Error sending response to ${that.rinfo.address}:${that.rinfo.port}: ${err}`))
+                    let wassend = that.server.write(Buffer.concat([responseLength, response]))
+                    if (wassend) {
+                        resolve(`Sent response to ${that.rinfo.address}:${that.rinfo.port}`)
+                    }
+                    else {
+                        reject(`Error sending response to ${that.rinfo.address}:${that.rinfo.port}`)
+                    }
+                    return;
+
                 }
                 else if (that.config.type == "udp4") {
 
@@ -168,12 +175,10 @@ class responseclass {
                     });
                     return;
                 }
-                else
-                {
+                else {
                     reject(`Connection not supported!`);
                     return;
                 }
-
             }
             catch (err) {
                 reject(err)

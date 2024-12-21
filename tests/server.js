@@ -11,6 +11,7 @@ class dnsclass {
     return new Promise(async (resolve, reject) => {
       that.server = new dnsserverclass({
         "type": "tcp4",
+        "maxtime":3,
         "port": port,
         "address": "0.0.0.0",
         "handle": (request, responseclass) =>
