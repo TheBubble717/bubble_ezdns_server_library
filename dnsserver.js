@@ -121,7 +121,7 @@ class responseclass {
             try {
 
                 // Process answers to split TXT records if necessary
-                const processedAnswers = answers.map(answer => {
+                answers.map(answer => {
                     if (answer.type === 'TXT' && typeof answer.data === 'string') {
                         answer.data = Array.from({ length: Math.ceil(answer.data.length / 255) },
                             (_, i) => answer.data.slice(i * 255, (i + 1) * 255));
@@ -129,25 +129,57 @@ class responseclass {
                     return answer;
                 });
 
-                // Prepare the EDNS0 OPT record
-                const optRecord = {
-                    type: 'OPT',
-                    name: '.', // Root domain
-                    udpPayloadSize: 4096,
-                    extendedRcode: 0,
-                    ednsVersion: 0,
-                    flags: 0,
-                    data: Buffer.alloc(0),
-                };
 
-                var response = dnsPacket.encode({
-                    type: 'response',
-                    id: that.request.id,
-                    flags: dnsflags,
-                    questions: that.request.questions,
-                    answers: processedAnswers,
-                    additionals: [optRecord],
-                })
+
+                if (that.request.additionals.some((record) => record.type === 'OPT')) {
+                    const incomingOptRecord = that.request.additionals.find(
+                        (record) => record.type === 'OPT'
+                    );
+                
+                    if (incomingOptRecord && incomingOptRecord.ednsVersion !== 0) {
+                        // Return FORMERR for unsupported EDNS version
+                        var response = dnsPacket.encode({
+                            type: 'response',
+                            id: that.request.id,
+                            flags: dnsflags | 0x0001, // Set RCODE to FORMERR
+                            questions: that.request.questions,
+                            answers: [],
+                            additionals: [],
+                        });
+                    } else {
+                        // Prepare the EDNS0 OPT record
+                        const optRecord = {
+                            type: 'OPT',
+                            name: '.',
+                            udpPayloadSize: incomingOptRecord ? incomingOptRecord.udpPayloadSize : 4096,
+                            extendedRcode: 0,
+                            ednsVersion: 0,
+                            flags: 0, // Ensure no DO flag for DNSSEC
+                            data: Buffer.alloc(0),
+                        };
+                
+                        var response = dnsPacket.encode({
+                            type: 'response',
+                            id: that.request.id,
+                            flags: dnsflags,
+                            questions: that.request.questions,
+                            answers: answers,
+                            additionals: [optRecord],
+                        });
+                    }
+                } else {
+                    var response = dnsPacket.encode({
+                        type: 'response',
+                        id: that.request.id,
+                        flags: dnsflags,
+                        questions: that.request.questions,
+                        answers: answers,
+                        additionals: [],
+                    });
+                }
+
+
+
 
                 if (that.config.type == "tcp4") {
 
